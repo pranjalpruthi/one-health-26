@@ -142,7 +142,6 @@ This project follows the [all-contributors](https://github.com/all-contributors/
 
 For any queries regarding the workshop, materials, or access issues, please reach out:
 * **Email:** jitendra.igib@csir.res.in 
-* **Phone:** +91 7835999528 
 * **Website:** [jitendralab.igib.res.in](http://jitendralab.igib.res.in) 
 * **Event Portal:** [igib-events.vercel.app](http://igib-events.vercel.app) 
 
