@@ -1,0 +1,6 @@
+Books to read:
+
+- R for Data Science - https://r4ds.had.co.nz/
+- Modern Statistics for Modern Biology - https://www.huber.embl.de/msmb/
+- Statistical Rethinking - check in the library for the book, but lectures available here: https://www.youtube.com/playlist?list=PLDcUM9US4XdMROZ57-OIRtIK0aOynbgZN
+
