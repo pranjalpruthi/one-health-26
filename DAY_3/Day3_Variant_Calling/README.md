@@ -1,102 +1,202 @@
-# 🧬 SNP Calling Pipeline using BCFtools
 
-This pipeline describes how to perform read alignment and variant (SNP) calling from raw FASTQ files using bwa, samtools, and bcftools.
+# 🧬 SNP Calling Pipeline using BCFtools (with Duplicate Marking)
 
-## 📦 Requirements
+This workflow performs **read alignment and SNP calling** from FASTQ files using:
+
+## 📦 Dependencies required
+
 ```
-sra-tools
-bwa  
-samtools  
-bcftools  
-tabix
+- sra-tools
+- bwa
+- samtools
+- bcftools
+- tabix
 ```
+
+---
 
 ## 📁 Input Data
-We'll be downloading both our reference genome and our test data.
 
-#### Reference genome
+#### Reference genome:
 ```
-wget https://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/009/858/895/GCF_009858895.2_ASM985889v3/GCF_009858895.2_ASM985889v3_genomic.fna.gz 
-gunzip GCF_009858895.2_ASM985889v3/GCF_009858895.2_ASM985889v3_genomic.fna.gz    
+wget https://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/009/858/895/GCF_009858895.2_ASM985889v3/GCF_009858895.2_ASM985889v3_genomic.fna.gz
+gunzip GCF_009858895.2_ASM985889v3/GCF_009858895.2_ASM985889v3_genomic.fna.gz
 ```
-#### Paired-end reads 
+We will also rename our reference genome to make it easier to process.
 ```
+mv GCF_009858895.2_ASM985889v3/GCF_009858895.2_ASM985889v3_genomic.fna ref.fa
+```
+#### Paired-end reads:
+```
+prefetch SRR37561623
 fasterq-dump --split-files SRR37561623/SRR37561623.sra
 ```
-That will give you paired-end Illumina files, containing SARS-CoV-2 reads, and your directory should consist of 3 files:
-```
-ls
-GCF_009858895.2_ASM985889v3_genomic.fna  SRR37561623_1.fastq  SRR37561623_2.
-```
-We'll rename our reference genome to make it easier for use.
-```
-mv GCF_009858895.2_ASM985889v3_genomic.fna ref.fa
-```
+---
 
 ## 🧭 Workflow Overview
 
 1. Index reference genome  
-2. Align reads to reference  
-3. Convert SAM → BAM, sort, index
-4. Mark PCR duplicates
-5. Generate pileup  
-6. Call variants  
-7. Filter SNPs  
+2. Align reads  
+3. Convert + sort BAM  
+4. Fix mate information  
+5. Mark duplicates  
+6. Variant calling  
+7. Filtering  
 
-## 🔧 Step-by-Step Pipeline
+---
+---
 
 ### 1️⃣ Index the Reference Genome
 
 ```
-bwa index ref.fa  
-samtools faidx ref.fa  
+bwa index ref.fa
+samtools faidx ref.fa
 ```
+---
+
 ### 2️⃣ Align Reads with BWA-MEM
 
+```bash
+bwa mem -t 8 ref.fa SRR37561623_1.fastq SRR37561623_2.fastq > covid.sam
 ```
-bwa mem -t 8 ref.fa SRR37561623_1.fastq SRR37561623_2.fastq > covid.sam  
+---
+
+### 3️⃣ Convert SAM → BAM and Sort
+
+```
+samtools view -@ 8 -bS covid.sam > covid.bam
+samtools sort -@ 8 -o covid.sorted.bam covid.bam
+```
+---
+
+### 4️⃣ Fix Mate Information
+
+```
+samtools fixmate -m sample.sorted.bam sample.fixmate.bam
 ```
 
-### 3️⃣ Convert SAM to BAM, Sort and Index
+**Why?**
+- Adds mate-pair information needed for accurate duplicate marking  
+- Ensures proper pairing statistics  
 
+---
+
+### 5️⃣ Re-sort by Position
+
+```bash
+samtools sort -@ 8 -o sample.positionsort.bam sample.fixmate.bam
 ```
-samtools view -bS sample.sam > sample.bam  
-samtools sort -@ 8 -o sample.sorted.bam sample.bam  
-samtools index sample.sorted.bam
+
+**Why?**
+- Required before duplicate marking  
+- Ensures reads are ordered by genomic position  
+
+---
+
+### 6️⃣ Mark PCR Duplicates
+
+```bash
+samtools markdup -@ 8 sample.positionsort.bam sample.markdup.bam
+samtools index sample.markdup.bam
 ```
 
-### 4️⃣ Generate Pileup and Call Variants
+**Why?**
+- Removes PCR amplification bias  
+- Prevents false SNP calls due to artificially duplicated reads  
 
-bcftools mpileup -Ou -f ref.fa sample.sorted.bam | bcftools call -mv -Oz -o sample.vcf.gz  
+---
 
-### 5️⃣ Index the VCF File
+### 7️⃣ Variant Calling
 
-bcftools index sample.vcf.gz  
+```bash
+bcftools mpileup -Ou -f ref.fa sample.markdup.bam | \
+bcftools call -mv -Oz -o sample.vcf.gz
+```
 
-### 6️⃣ Filter SNPs
+**Why?**
+- `mpileup`: summarizes base information at each position  
+- `call`: identifies SNPs and variants  
 
-bcftools view -v snps sample.vcf.gz -Oz -o sample.snps.vcf.gz  
-bcftools index sample.snps.vcf.gz  
+---
 
-bcftools filter -e 'QUAL<30 || DP<10' sample.snps.vcf.gz -Oz -o sample.filtered.vcf.gz  
-bcftools index sample.filtered.vcf.gz  
+### 8️⃣ Index the VCF
 
-## 📊 Optional: Multi-sample Variant Calling
+```bash
+bcftools index sample.vcf.gz
+```
 
-bcftools mpileup -Ou -f ref.fa *.sorted.bam | bcftools call -mv -Oz -o cohort.vcf.gz  
+**Why?**
+- Enables fast querying of the VCF  
+
+---
+
+### 9️⃣ Extract SNPs
+
+```bash
+bcftools view -v snps sample.vcf.gz -Oz -o sample.snps.vcf.gz
+bcftools index sample.snps.vcf.gz
+```
+
+**Why?**
+- Keeps only SNPs (removes indels and other variants)  
+
+---
+
+### 🔟 Filter SNPs
+
+```bash
+bcftools filter -e 'QUAL<30 || DP<10' sample.snps.vcf.gz -Oz -o sample.filtered.vcf.gz
+bcftools index sample.filtered.vcf.gz
+```
+
+**Why?**
+- Removes low-quality variants  
+- Improves reliability of downstream analysis  
+
+---
+
+## 📊 Optional: Multi-sample Calling
+
+```bash
+bcftools mpileup -Ou -f ref.fa *.markdup.bam | \
+bcftools call -mv -Oz -o cohort.vcf.gz
+```
+
+**Why?**
+- Calls variants jointly across samples  
+- Improves consistency across datasets  
+
+---
 
 ## 🧪 Output Files
 
-- sample.sorted.bam  
-- sample.vcf.gz  
-- sample.snps.vcf.gz  
-- sample.filtered.vcf.gz  
+| File | Description |
+|------|-------------|
+| sample.markdup.bam | Final processed alignment |
+| sample.vcf.gz | Raw variants |
+| sample.snps.vcf.gz | SNP-only variants |
+| sample.filtered.vcf.gz | High-quality SNPs |
+
+---
+
+## ⚠️ Notes
+
+- Duplicate marking is **critical for diploid genomes**
+- Filtering thresholds (`QUAL`, `DP`) should be adjusted based on dataset
+- For very large datasets, use pipes (`-Ou`) to reduce I/O overhead
+
+---
 
 ## 🧹 Cleanup (Optional)
 
-rm *.bam.bai  
+```bash
+rm sample.sam sample.bam sample.sorted.bam sample.fixmate.bam sample.positionsort.bam
+```
 
-## 📌 Notes
+---
 
-- Suitable for haploid and diploid organisms  
-- Adjust filtering thresholds as needed  
+## 🚀 Tips
+
+- Use multiple threads (`-t`, `-@`)
+- Avoid writing intermediate files when possible
+- For HPC: parallelize across samples, not steps
