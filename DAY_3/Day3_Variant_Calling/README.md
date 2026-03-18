@@ -19,10 +19,6 @@ This workflow performs **read alignment and SNP calling** from FASTQ files using
 ```
 conda activate bioset1
 ```
-Pre-installed tools in you conda environment for your respective logins
-```
-
----
 
 ## 📁 Input Data
 
