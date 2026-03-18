@@ -1,5 +1,5 @@
 
-# 🧬 SNP Calling Pipeline using BCFtools (with Duplicate Marking)
+# 🧬 SNP Calling Pipeline using BCFTools
 
 This workflow performs **read alignment and SNP calling** from FASTQ files using:
 
