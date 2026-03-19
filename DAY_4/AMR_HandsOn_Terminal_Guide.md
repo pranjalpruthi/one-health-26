@@ -186,15 +186,10 @@ amrfinder --database_version 2>/dev/null || echo "Database ready"
 # --- Isolate 1: K. pneumoniae MVS2 ---
 echo "🔬 Running AMRFinderPlus on K. pneumoniae MVS2..."
 
-amrfinder \
-  -n ~/amr_analysis/genomes/GCF_051414815.1_KpMVS2_genomic.fna \
-  --organism Klebsiella_pneumoniae \
-  --plus \
-  --output ~/amr_analysis/results/amrfinder/kp_mvs2_amr.tsv
+amrfinder -n ~/amr_analysis/genomes/GCF_051414815.1_KpMVS2_genomic.fna --organism Klebsiella_pneumoniae --plus --output ~/amr_analysis/results/amrfinder/kp_mvs2_amr.tsv
 
 echo "✅ Analysis complete!"
-wc -l < ~/amr_analysis/results/amrfinder/kp_mvs2_amr.tsv \
-  | awk '{print $1-1 " resistance determinants found"}'
+wc -l < ~/amr_analysis/results/amrfinder/kp_mvs2_amr.tsv | awk '{print $1-1 " resistance determinants found"}'
 
 
 # --- Isolate 2: K. pneumoniae ASM5154963v1 ---
@@ -203,8 +198,7 @@ echo "🔬 Running AMRFinderPlus on K. pneumoniae ASM5154963v1..."
 amrfinder -n ~/amr_analysis/genomes/GCF_051549635.1_ASM5154963v1_genomic.fna --organism Klebsiella_pneumoniae --plus --output ~/amr_analysis/results/amrfinder/kp_asm_amr.tsv
 
 echo "✅ Analysis complete!"
-wc -l < ~/amr_analysis/results/amrfinder/kp_asm_amr.tsv \
-  | awk '{print $1-1 " resistance determinants found"}'
+wc -l < ~/amr_analysis/results/amrfinder/kp_asm_amr.tsv | awk '{print $1-1 " resistance determinants found"}'
 ```
 
 ### 1.4 Inspect AMRFinderPlus Results
@@ -216,10 +210,7 @@ head -n 5 ~/amr_analysis/results/amrfinder/kp_mvs2_amr.tsv
 echo ""
 echo "📊 Summary — Drug Classes detected:"
 # Print column header then count by class (column 12 = Class in standard output)
-awk -F'\t' 'NR==1{for(i=1;i<=NF;i++) if($i=="Class") col=i}
-            NR>1 && col{print $col}' \
-  ~/amr_analysis/results/amrfinder/kp_mvs2_amr.tsv \
-  | sort | uniq -c | sort -rn
+awk -F'\t' 'NR==1{for(i=1;i<=NF;i++) if($i=="Class") col=i} NR>1 && col{print $col}' ~/amr_analysis/results/amrfinder/kp_mvs2_amr.tsv | sort | uniq -c | sort -rn
 ```
 
 ---
@@ -250,22 +241,16 @@ echo "🔬 Running CARD RGI on K. pneumoniae MVS2..."
 rgi main --input_sequence ~/amr_analysis/genomes/GCF_051414815.1_KpMVS2_genomic.fna --output_file ~/amr_analysis/results/rgi/kp_mvs2_rgi --input_type contig --clean
 
 echo "✅ RGI complete!"
-wc -l < ~/amr_analysis/results/rgi/kp_mvs2_rgi.txt \
-  | awk '{print $1-1 " genes found"}'
+wc -l < ~/amr_analysis/results/rgi/kp_mvs2_rgi.txt | awk '{print $1-1 " genes found"}'
 
 
 # --- Isolate 2: K. pneumoniae ASM5154963v1 ---
 echo "🔬 Running CARD RGI on K. pneumoniae ASM5154963v1..."
 
-rgi main \
-  --input_sequence ~/amr_analysis/genomes/GCF_051549635.1_ASM5154963v1_genomic.fna \
-  --output_file ~/amr_analysis/results/rgi/kp_asm_rgi \
-  --input_type contig \
-  --clean
+rgi main --input_sequence ~/amr_analysis/genomes/GCF_051549635.1_ASM5154963v1_genomic.fna --output_file ~/amr_analysis/results/rgi/kp_asm_rgi --input_type contig --clean
 
 echo "✅ RGI complete!"
-wc -l < ~/amr_analysis/results/rgi/kp_asm_rgi.txt \
-  | awk '{print $1-1 " genes found"}'
+wc -l < ~/amr_analysis/results/rgi/kp_asm_rgi.txt | awk '{print $1-1 " genes found"}'
 ```
 
 ### 2.3 Inspect RGI Results
@@ -276,10 +261,7 @@ head -n 5 ~/amr_analysis/results/rgi/kp_mvs2_rgi.txt
 
 echo ""
 echo "🎯 Detection stringency breakdown (Cut_Off column):"
-awk -F'\t' 'NR==1{for(i=1;i<=NF;i++) if($i=="Cut_Off") col=i}
-            NR>1 && col{print $col}' \
-  ~/amr_analysis/results/rgi/kp_mvs2_rgi.txt \
-  | sort | uniq -c | sort -rn
+awk -F'\t' 'NR==1{for(i=1;i<=NF;i++) if($i=="Cut_Off") col=i} NR>1 && col{print $col}' ~/amr_analysis/results/rgi/kp_mvs2_rgi.txt | sort | uniq -c | sort -rn
 
 echo ""
 echo "💡 Perfect = 100% identity | Strict = >95% | Loose = Divergent"
