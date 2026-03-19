@@ -345,6 +345,15 @@ echo "  ARG-ANNOT: $(( $(wc -l < ~/amr_analysis/results/abricate/mvs2_argannot.t
 
 ## 📊 Exercise 4: Comparative Analysis
 
+### Install Python Dependencies
+
+```bash
+pip install pandas matplotlib seaborn openpyxl --quiet
+
+# Verify
+python -c "import pandas, matplotlib, seaborn, openpyxl; print('✅ All dependencies installed')"
+```
+
 Use the following Python script to compare results across all tools, compute consensus genes, and generate visualizations.
 
 ### Run the Comparison Script
