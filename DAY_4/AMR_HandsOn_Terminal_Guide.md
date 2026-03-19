@@ -285,7 +285,7 @@ echo "💡 Perfect = 100% identity | Strict = >95% | Loose = Divergent"
 ### 3.1 Install ABRicate
 
 ```bash
-echo "✅ ABRicate installed:"
+conda activate work1
 abricate --version
 ```
 
