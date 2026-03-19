@@ -102,7 +102,7 @@ mkdir -p ~/amr_analysis/comparison
 
 cd ~/amr_analysis
 
-echo "✅ Directory structure:"
+echo "Directory structure:"
 tree -L 2 ~/amr_analysis 2>/dev/null || find ~/amr_analysis -type d
 ```
 
@@ -113,7 +113,7 @@ tree -L 2 ~/amr_analysis 2>/dev/null || find ~/amr_analysis -type d
 ```bash
 DOWNLOAD_DIR="$HOME/amr_analysis/genomes"
 
-echo "📥 Downloading K. pneumoniae genomes from NCBI..."
+echo "Downloading K. pneumoniae genomes from NCBI..."
 
 # Isolate 1: K. pneumoniae MVS2
 echo "Downloading Isolate 1: K. pneumoniae MVS2 (GCF_051414815.1)..."
@@ -124,10 +124,10 @@ echo "Downloading Isolate 2: K. pneumoniae ASM5154963v1 (GCF_051549635.1)..."
 wget -q --show-progress -P "$DOWNLOAD_DIR" https://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/051/549/635/GCF_051549635.1_ASM5154963v1/GCF_051549635.1_ASM5154963v1_genomic.fna.gz
 
 # Decompress
-echo "📦 Decompressing..."
+echo "Decompressing..."
 gunzip "$DOWNLOAD_DIR"/*.gz
 
-echo "✅ Download complete! Files:"
+echo "Download complete! Files:"
 ls -lh "$DOWNLOAD_DIR"/*.fna
 ```
 
@@ -137,12 +137,12 @@ ls -lh "$DOWNLOAD_DIR"/*.fna
 echo "=== Genome Statistics ==="
 
 echo ""
-echo "📊 K. pneumoniae MVS2:"
+echo "K. pneumoniae MVS2:"
 grep -c ">" ~/amr_analysis/genomes/GCF_051414815.1_KpMVS2_genomic.fna | xargs -I {} echo "  Contigs: {}"
 grep -v ">" ~/amr_analysis/genomes/GCF_051414815.1_KpMVS2_genomic.fna | wc -c | awk '{print "  Genome size: ~" int($1/1000000) " Mb"}'
 
 echo ""
-echo "📊 K. pneumoniae ASM5154963v1:"
+echo "K. pneumoniae ASM5154963v1:"
 grep -c ">" ~/amr_analysis/genomes/GCF_051549635.1_ASM5154963v1_genomic.fna | xargs -I {} echo "  Contigs: {}"
 grep -v ">" ~/amr_analysis/genomes/GCF_051549635.1_ASM5154963v1_genomic.fna | wc -c | awk '{print "  Genome size: ~" int($1/1000000) " Mb"}'
 
@@ -164,7 +164,7 @@ head -n 3 ~/amr_analysis/genomes/GCF_051414815.1_KpMVS2_genomic.fna
 ### 1.1 Install AMRFinderPlus
 
 ```bash
-echo "✅ AMRFinderPlus installed:"
+echo "AMRFinderPlus installed:"
 amrfinder --version
 ```
 
@@ -173,10 +173,10 @@ amrfinder --version
 > ⚠️ **Critical step.** Always update the database before running analyses to capture the latest resistance mechanisms.
 
 ```bash
-echo "📦 Updating AMRFinderPlus database (may take 2–3 minutes)..."
+echo "Updating AMRFinderPlus database (may take 2–3 minutes)..."
 amrfinder --update
 
-echo "✅ Database update complete!"
+echo "Database update complete!"
 amrfinder --database_version 2>/dev/null || echo "Database ready"
 ```
 
@@ -184,31 +184,31 @@ amrfinder --database_version 2>/dev/null || echo "Database ready"
 
 ```bash
 # --- Isolate 1: K. pneumoniae MVS2 ---
-echo "🔬 Running AMRFinderPlus on K. pneumoniae MVS2..."
+echo "Running AMRFinderPlus on K. pneumoniae MVS2..."
 
 amrfinder -n ~/amr_analysis/genomes/GCF_051414815.1_KpMVS2_genomic.fna --organism Klebsiella_pneumoniae --plus --output ~/amr_analysis/results/amrfinder/kp_mvs2_amr.tsv
 
-echo "✅ Analysis complete!"
+echo "Analysis complete!"
 wc -l < ~/amr_analysis/results/amrfinder/kp_mvs2_amr.tsv | awk '{print $1-1 " resistance determinants found"}'
 
 
 # --- Isolate 2: K. pneumoniae ASM5154963v1 ---
-echo "🔬 Running AMRFinderPlus on K. pneumoniae ASM5154963v1..."
+echo "Running AMRFinderPlus on K. pneumoniae ASM5154963v1..."
 
 amrfinder -n ~/amr_analysis/genomes/GCF_051549635.1_ASM5154963v1_genomic.fna --organism Klebsiella_pneumoniae --plus --output ~/amr_analysis/results/amrfinder/kp_asm_amr.tsv
 
-echo "✅ Analysis complete!"
+echo "Analysis complete!"
 wc -l < ~/amr_analysis/results/amrfinder/kp_asm_amr.tsv | awk '{print $1-1 " resistance determinants found"}'
 ```
 
 ### 1.4 Inspect AMRFinderPlus Results
 
 ```bash
-echo "📋 Preview of AMRFinderPlus results (MVS2):"
+echo "Preview of AMRFinderPlus results (MVS2):"
 head -n 5 ~/amr_analysis/results/amrfinder/kp_mvs2_amr.tsv
 
 echo ""
-echo "📊 Summary — Drug Classes detected:"
+echo "Summary — Drug Classes detected:"
 # Print column header then count by class (column 12 = Class in standard output)
 awk -F'\t' 'NR==1{for(i=1;i<=NF;i++) if($i=="Class") col=i} NR>1 && col{print $col}' ~/amr_analysis/results/amrfinder/kp_mvs2_amr.tsv | sort | uniq -c | sort -rn
 ```
@@ -228,7 +228,7 @@ awk -F'\t' 'NR==1{for(i=1;i<=NF;i++) if($i=="Class") col=i} NR>1 && col{print $c
 ### 2.1 Install RGI
 
 ```bash
-echo "✅ RGI installed:"
+echo "RGI installed:"
 rgi --version
 ```
 
@@ -236,11 +236,11 @@ rgi --version
 
 ```bash
 # --- Isolate 1: K. pneumoniae MVS2 ---
-echo "🔬 Running CARD RGI on K. pneumoniae MVS2..."
+echo "Running CARD RGI on K. pneumoniae MVS2..."
 
 rgi main --input_sequence ~/amr_analysis/genomes/GCF_051414815.1_KpMVS2_genomic.fna --output_file ~/amr_analysis/results/rgi/kp_mvs2_rgi --input_type contig --clean
 
-echo "✅ RGI complete!"
+echo "RGI complete!"
 wc -l < ~/amr_analysis/results/rgi/kp_mvs2_rgi.txt | awk '{print $1-1 " genes found"}'
 
 
@@ -249,22 +249,22 @@ echo "🔬 Running CARD RGI on K. pneumoniae ASM5154963v1..."
 
 rgi main --input_sequence ~/amr_analysis/genomes/GCF_051549635.1_ASM5154963v1_genomic.fna --output_file ~/amr_analysis/results/rgi/kp_asm_rgi --input_type contig --clean
 
-echo "✅ RGI complete!"
+echo "RGI complete!"
 wc -l < ~/amr_analysis/results/rgi/kp_asm_rgi.txt | awk '{print $1-1 " genes found"}'
 ```
 
 ### 2.3 Inspect RGI Results
 
 ```bash
-echo "📋 Preview of RGI results (MVS2):"
+echo "Preview of RGI results (MVS2):"
 head -n 5 ~/amr_analysis/results/rgi/kp_mvs2_rgi.txt
 
 echo ""
-echo "🎯 Detection stringency breakdown (Cut_Off column):"
+echo "Detection stringency breakdown (Cut_Off column):"
 awk -F'\t' 'NR==1{for(i=1;i<=NF;i++) if($i=="Cut_Off") col=i} NR>1 && col{print $col}' ~/amr_analysis/results/rgi/kp_mvs2_rgi.txt | sort | uniq -c | sort -rn
 
 echo ""
-echo "💡 Perfect = 100% identity | Strict = >95% | Loose = Divergent"
+echo "Perfect = 100% identity | Strict = >95% | Loose = Divergent"
 ```
 
 ---
@@ -292,10 +292,10 @@ abricate --version
 ### 3.2 Set Up Databases
 
 ```bash
-echo "📦 Setting up ABRicate databases..."
+echo "Setting up ABRicate databases..."
 abricate --setupdb
 
-echo "📚 Available databases:"
+echo "Available databases:"
 abricate --list
 ```
 
@@ -306,36 +306,36 @@ GENOME="$HOME/amr_analysis/genomes/GCF_051414815.1_KpMVS2_genomic.fna"
 OUTDIR="$HOME/amr_analysis/results/abricate"
 
 # CARD database
-echo "🔬 ABRicate (CARD)..."
+echo "ABRicate (CARD)..."
 abricate --db card "$GENOME" > "$OUTDIR/mvs2_card.tab"
 echo "  Genes found: $(( $(wc -l < "$OUTDIR/mvs2_card.tab") - 1 ))"
 
 # ResFinder database
-echo "🔬 ABRicate (ResFinder)..."
+echo "ABRicate (ResFinder)..."
 abricate --db resfinder "$GENOME" > "$OUTDIR/mvs2_resfinder.tab"
 echo "  Genes found: $(( $(wc -l < "$OUTDIR/mvs2_resfinder.tab") - 1 ))"
 
 # ARG-ANNOT database
-echo "🔬 ABRicate (ARG-ANNOT)..."
+echo "ABRicate (ARG-ANNOT)..."
 abricate --db argannot "$GENOME" > "$OUTDIR/mvs2_argannot.tab"
 echo "  Genes found: $(( $(wc -l < "$OUTDIR/mvs2_argannot.tab") - 1 ))"
 
 # VFDB — virulence factors
-echo "🔬 ABRicate (VFDB - Virulence)..."
+echo "ABRicate (VFDB - Virulence)..."
 abricate --db vfdb "$GENOME" > "$OUTDIR/mvs2_vfdb.tab"
 echo "  Virulence factors found: $(( $(wc -l < "$OUTDIR/mvs2_vfdb.tab") - 1 ))"
 
-echo "✅ All ABRicate analyses complete!"
+echo "All ABRicate analyses complete!"
 ```
 
 ### 3.4 Inspect ABRicate Results
 
 ```bash
-echo "📋 CARD results (columns: GENE, PRODUCT, %COVERAGE, %IDENTITY):"
+echo "CARD results (columns: GENE, PRODUCT, %COVERAGE, %IDENTITY):"
 cut -f6,8,9,10 ~/amr_analysis/results/abricate/mvs2_card.tab | column -t | head -20
 
 echo ""
-echo "📊 Database comparison:"
+echo "Database comparison:"
 echo "  CARD:      $(( $(wc -l < ~/amr_analysis/results/abricate/mvs2_card.tab) - 1 )) genes"
 echo "  ResFinder: $(( $(wc -l < ~/amr_analysis/results/abricate/mvs2_resfinder.tab) - 1 )) genes"
 echo "  ARG-ANNOT: $(( $(wc -l < ~/amr_analysis/results/abricate/mvs2_argannot.tab) - 1 )) genes"
@@ -379,7 +379,7 @@ resfinder_genes  = set(df_resfinder['GENE'].str.lower().str.strip())
 all_genes        = amrfinder_genes | rgi_genes | card_abr_genes | resfinder_genes
 
 print("=" * 60)
-print("🔄 Cross-Tool Comparison — K. pneumoniae MVS2")
+print(" Cross-Tool Comparison — K. pneumoniae MVS2")
 print("=" * 60)
 print(f"  AMRFinderPlus : {len(amrfinder_genes)} genes")
 print(f"  CARD RGI      : {len(rgi_genes)} genes")
@@ -395,12 +395,12 @@ gene_counts = Counter({
 })
 consensus_genes = [g for g, c in gene_counts.items() if c >= 3]
 
-print(f"\n✅ High-confidence genes (3+ tools): {len(consensus_genes)}")
+print(f"\n High-confidence genes (3+ tools): {len(consensus_genes)}")
 for gene in sorted(consensus_genes):
     print(f"  • {gene}")
 
 # ── Quality Metrics ────────────────────────────────────────────────────────
-print("\n📊 Quality Metrics (AMRFinderPlus):")
+print("\n Quality Metrics (AMRFinderPlus):")
 id_col  = '% Identity to reference sequence'
 cov_col = '% Coverage of reference sequence'
 if id_col in df_mvs2.columns:
@@ -408,7 +408,7 @@ if id_col in df_mvs2.columns:
     print(f"  Avg Coverage : {df_mvs2[cov_col].mean():.2f}%")
 
 # ── Resistance Classes ─────────────────────────────────────────────────────
-print("\n🧬 Resistance Determinants by Class (AMRFinderPlus):")
+print("\n Resistance Determinants by Class (AMRFinderPlus):")
 if 'Class' in df_mvs2.columns:
     for cls, cnt in df_mvs2['Class'].value_counts().items():
         print(f"  {cls}: {cnt}")
@@ -424,7 +424,7 @@ if 'Class' in df_mvs2.columns:
     ax.set_title('AMR Genes by Drug Class (K. pneumoniae MVS2)', fontsize=14, fontweight='bold')
     plt.tight_layout()
     plt.savefig('comparison/drug_classes.png', dpi=300)
-    print("\n✅ Saved: comparison/drug_classes.png")
+    print("\n Saved: comparison/drug_classes.png")
 
 # Plot 2: Quality metrics scatter
 if id_col in df_mvs2.columns:
@@ -441,7 +441,7 @@ if id_col in df_mvs2.columns:
     plt.colorbar(sc, ax=ax, label='Identity (%)')
     plt.tight_layout()
     plt.savefig('comparison/quality_metrics.png', dpi=300)
-    print("✅ Saved: comparison/quality_metrics.png")
+    print(" Saved: comparison/quality_metrics.png")
 
 # Plot 3: Tool comparison bar chart
 tool_data = {
@@ -461,7 +461,7 @@ for bar in bars:
             ha='center', va='bottom', fontsize=11, fontweight='bold')
 plt.tight_layout()
 plt.savefig('comparison/tool_comparison.png', dpi=300)
-print("✅ Saved: comparison/tool_comparison.png")
+print(" Saved: comparison/tool_comparison.png")
 
 # ── Excel Export ───────────────────────────────────────────────────────────
 with pd.ExcelWriter('comparison/AMR_Results_Comparison.xlsx', engine='openpyxl') as writer:
@@ -475,7 +475,7 @@ with pd.ExcelWriter('comparison/AMR_Results_Comparison.xlsx', engine='openpyxl')
                            len(card_abr_genes), len(resfinder_genes)]
     }).to_excel(writer, sheet_name='Summary', index=False)
 
-print("✅ Saved: comparison/AMR_Results_Comparison.xlsx")
+print(" Saved: comparison/AMR_Results_Comparison.xlsx")
 ```
 
 </details>
@@ -507,7 +507,7 @@ FILES
 ================================================================================
 EOF
 
-echo "✅ Summary report scaffold created. Run compare_results.py for full stats."
+echo " Summary report scaffold created. Run compare_results.py for full stats."
 ```
 
 ### Archive All Results
@@ -516,8 +516,8 @@ echo "✅ Summary report scaffold created. Run compare_results.py for full stats
 cd ~
 zip -r AMR_Analysis_Results.zip amr_analysis/ -q
 
-echo "✅ Archive created: AMR_Analysis_Results.zip"
-echo "📁 Contents:"
+echo " Archive created: AMR_Analysis_Results.zip"
+echo " Contents:"
 unzip -l AMR_Analysis_Results.zip | head -30
 ```
 
